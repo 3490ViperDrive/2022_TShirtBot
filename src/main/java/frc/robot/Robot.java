@@ -4,7 +4,10 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -16,15 +19,11 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * project.
  */
 public class Robot extends TimedRobot {
-  private static final String kDefaultAuto = "Default";
-  private static final String kCustomAuto = "My Auto";
-  private String m_autoSelected;
-  private final SendableChooser<String> m_chooser = new SendableChooser<>();
-
-  private final PWMSparkMax frontRightMotor = new PWMSparkMax(Constants.frontRight);
-  private final PWMSparkMax frontLeftMotor = new PWMSparkMax(Constants.frontLeft);
-  private final PWMSparkMax backRightMotor = new PWMSparkMax(Constants.backLeft);
-  private final PWMSparkMax backLeftMotor = new PWMSparkMax(Constants.backRight);
+  private final PWMSparkMax m_leftDrive = new PWMSparkMax(0);
+  private final PWMSparkMax m_rightDrive = new PWMSparkMax(1);
+  private final DifferentialDrive m_robotDrive = new DifferentialDrive(m_leftDrive, m_rightDrive);
+  private final Joystick m_stick = new Joystick(0);
+  private final Timer m_timer = new Timer();
 
   //TODO: finish  instantiating/initializing robot parts
     //initialize actuator motor
@@ -36,11 +35,8 @@ public class Robot extends TimedRobot {
    * initialization code.
    */
   @Override
-  public void robotInit() {
-    m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
-    m_chooser.addOption("My Auto", kCustomAuto);
-    SmartDashboard.putData("Auto choices", m_chooser);
-  }
+  public void robotInit() {}
+  
 
   /**
    * This function is called every 20 ms, no matter the mode. Use this for items like diagnostics
@@ -64,22 +60,18 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousInit() {
-    m_autoSelected = m_chooser.getSelected();
-    // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
-    System.out.println("Auto selected: " + m_autoSelected);
+    m_timer.reset();
+    m_timer.start();
   }
 
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
-    switch (m_autoSelected) {
-      case kCustomAuto:
-        // Put custom auto code here
-        break;
-      case kDefaultAuto:
-      default:
-        // Put default auto code here
-        break;
+    // Drive for 2 seconds
+    if (m_timer.get() < 2.0) {
+      m_robotDrive.arcadeDrive(0.5, 0.0); // drive forwards half speed
+    } else {
+      m_robotDrive.stopMotor(); // stop robot
     }
   }
 
@@ -90,9 +82,7 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    //TODO 
-      //put Shirt bot 2 electric boogaloo content into actual factual java code here
-     
+    m_robotDrive.arcadeDrive(m_stick.getY(), m_stick.getX());   
   }
 
   /** This function is called once when the robot is disabled. */
